@@ -1,0 +1,268 @@
+{
+  "name": "Classificação Setorial",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "allowFileUploads": true,
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -736,
+        -32
+      ],
+      "id": "707f2641-aedf-4c0c-91bf-d9a6181c3e4b",
+      "name": "When chat message received",
+      "webhookId": "a895c0be-21b8-4b08-a61a-de7e8aeb8b7d"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT nome, descricao FROM segmento;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        -144,
+        64
+      ],
+      "id": "d9f0ecdc-6001-489e-ae31-e09a0f8ac836",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "0qG1XJFpaAgiBvFW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5001/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"Qwen2-VL-7B-Instruct\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Você é um analista de inteligência de mercado focado na classificação setorial da B3 e auditoria de mídia (padrão IBOPE). Analise o produto.\\n\\nResponda OBRIGATORIAMENTE preenchendo os três campos abaixo, sem omitir nenhum:\\n\\nMarca: [NOME COMPLETO DO PRODUTO. Exemplo: NIVEA Gel Creme Facial Ultra leve Vitamina C 7 em 1]\\nSegmento: [Nome exato do Segmento da lista]\\nJustificativa: [Explique detalhadamente por que o produto se encaixa neste segmento]\\n\\nVocê SÓ PODE escolher um segmento da lista abaixo:\\n\\n{{ $items('Execute a SQL query').map(item => item.json.nome + ' - ' + item.json.descricao).join('\\\\n') }}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"text\",\n          \"text\": {{ JSON.stringify(\"Instrução do usuário: \" + $('When chat message received').first().json.chatInput) }}\n        },\n        {\n          \"type\": \"image_url\",\n          \"image_url\": {\n            \"url\": \"data:image/jpeg;base64,{{ $('Code in JavaScript').first().json.foto_base64 || 'VemV6aW8=' }}\"\n          }\n        }\n      ]\n    }\n  ],\n  \"temperature\": 0.1,\n  \"max_tokens\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        32,
+        64
+      ],
+      "id": "1996e7dc-94aa-4492-9add-152bc0dca9b4",
+      "name": "HTTP Request",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.choices[0].message.content }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        64
+      ],
+      "id": "29cc8fdb-7bfe-4402-a9d1-47543ba59d55",
+      "name": "Chat",
+      "webhookId": "55eb7ee9-673c-440f-84a4-199474a14be9"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // Verifica se a mensagem realmente veio com um arquivo anexado\n  if (item.binary && item.binary.data0) {\n    // Se tiver foto, puxa do disco e converte para Base64\n    const buffer = await this.helpers.getBinaryDataBuffer(0, 'data0');\n    item.json.foto_base64 = buffer.toString('base64');\n  } else {\n    // Se não tiver foto (como no caso de enviar só o link do produto)\n    item.json.foto_base64 = \"\";\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        64
+      ],
+      "id": "de47595c-aee6-4d2e-84b3-1f725d643441",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When chat message received').first().json.chatInput }}",
+                    "rightValue": "http",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "f0934b1c-5bfc-4733-8ff9-b9a05cfecaa6"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        -576,
+        -32
+      ],
+      "id": "779f0d13-f314-4f3c-acce-55b457dc912b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('When chat message received').first().json.chatInput.match(/https?:\\/\\/[^\\s]+/)[0] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -336,
+        -144
+      ],
+      "id": "4850631a-dd83-4779-b43f-940f8a106654",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "texto_site",
+              "cssSelector": "body",
+              "skipSelectors": "script, style, nav, footer"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        -144
+      ],
+      "id": "0baa5725-e7ce-4614-b769-9ce18bd9fd89",
+      "name": "HTML"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1bfc1352-46a3-4c24-a89f-fb85d9bb1de3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ba82efefb337f87f03fe2a8147e1a767fe3d38d563571d2a1bb11ec89b5d429c"
+  },
+  "nodeGroups": [],
+  "id": "1DFwBnwQGEEYpIJw",
+  "tags": []
+}

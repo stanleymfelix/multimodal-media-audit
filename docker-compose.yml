@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: b3_taxonomy_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: Classificacao_Setorial
+    ports:
+      - "5432:5432"
+    volumes:
+      # O Docker vai ler o seu schema.sql e criar a tabela automaticamente na primeira vez que rodar!
+      - ./schema.sql:/docker-entrypoint-initdb.d/Classificacao_Setorial.sql
+      - pg_data:/var/lib/postgresql/data
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n_multimodal_pipeline
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+    extra_hosts:
+      # Isso garante que o n8n dentro do container consiga enxergar o KoboldCPP rodando na sua máquina host (porta 5001)
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+volumes:
+  pg_data:
+  n8n_data:
