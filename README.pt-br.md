@@ -1,4 +1,4 @@
-Documentação Técnica: Sistema Automatizado de Classificação Setorial e Auditoria Mercadológica
+🇺🇸 [Read in English](README.md) | 🇧🇷 Leia em Português
 
 # 1. Visão Geral do Projeto
 
