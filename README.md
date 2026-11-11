@@ -2,6 +2,10 @@ Documentação Técnica: Sistema Automatizado de Classificação Setorial e Audi
 
 # 1. Visão Geral do Projeto
 
+# Documentação Técnica: Sistema Automatizado de Classificação Setorial e Auditoria Mercadológica (B3)
+
+▶️ **[Assista aqui ao vídeo de demonstração do ecossistema e roteamento ao vivo](https://www.youtube.com/watch?v=st0XsxZ5tAQ)**
+
 Este sistema automatiza a classificação mercadológica de produtos e inserções comerciais utilizando Inteligência Artificial Multimodal (Visão e Texto). O fluxo opera de forma híbrida, sendo capaz de receber imagens de produtos, links de e-commerce/sites ou transcrições de texto/áudio, cruzando esses dados em tempo real com uma base de dados relacional para devolver a Marca (nome completo do produto), o Segmento oficial e a Justificativa analítica da escolha.
 
 A arquitetura foi projetada sob o padrão OpenAI-Compatible API, o que garante flexibilidade agnóstica de modelo: o sistema pode operar tanto de forma 100% local e privada (On-Premise) sem custos de licenciamento externo, quanto conectado a APIs comerciais em nuvem (OpenAI, Anthropic, Google Gemini, Groq, vLLM ou Azure) através de uma simples alteração de URL e cabeçalho de autenticação.
