@@ -1,8 +1,8 @@
-Technical Documentation: Automated Sector Classification and Market Audit System
+🇺🇸 Read in English | 🇧🇷 [Leia em Português](README.pt-br.md)
 
-\# Technical Documentation: Automated Sector Classification and Market Audit System
+# Technical Documentation: Automated Sector Classification and Market Audit System
 
-▶️ \*\*\[Click here to watch the live demonstration of the ecosystem and conditional routing\](<https://www.youtube.com/watch?v=st0XsxZ5tAQ)\*\>*
+▶️ **[Click here to watch the live demonstration of the ecosystem and conditional routing](https://www.youtube.com/watch?v=st0XsxZ5tAQ)**
 
 # 1. Project Overview
 
